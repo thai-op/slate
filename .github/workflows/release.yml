@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  release:
+    types:
+      - published
+
+permissions:
+  contents: write
+
+jobs:
+  build_release:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Preflight
+        run: |
+          set -euo pipefail
+          xcodebuild -version
+          ruby --version
+          make --version
+          hdiutil version
+          command -v osascript
+          command -v SetFile
+          if ! command -v gh >/dev/null 2>&1; then
+            brew install gh
+          fi
+
+      - name: Validate release tag
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          TAG_VERSION="${RELEASE_TAG#v}"
+          APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Slate/Slate-Info.plist)"
+          if [ "${TAG_VERSION}" != "${APP_VERSION}" ]; then
+            echo "Release tag ${RELEASE_TAG} does not match CFBundleVersion ${APP_VERSION}" >&2
+            exit 1
+          fi
+          echo "TAG_VERSION=${TAG_VERSION}" >> "${GITHUB_ENV}"
+
+      - name: Run tests
+        run: make test
+
+      - name: Build release DMG
+        run: make release
+
+      - name: Prepare release assets
+        run: |
+          set -euo pipefail
+          DMG_PATH="build/Release/Slate.dmg"
+          VERSIONED_DMG="build/Release/Slate-${TAG_VERSION}.dmg"
+          CHECKSUM_PATH="${VERSIONED_DMG}.sha256"
+          mv "${DMG_PATH}" "${VERSIONED_DMG}"
+          shasum -a 256 "${VERSIONED_DMG}" > "${CHECKSUM_PATH}"
+          echo "DMG_PATH=${VERSIONED_DMG}" >> "${GITHUB_ENV}"
+          echo "CHECKSUM_PATH=${CHECKSUM_PATH}" >> "${GITHUB_ENV}"
+
+      - name: Upload release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          gh release upload "${RELEASE_TAG}" "${DMG_PATH}" "${CHECKSUM_PATH}" --clobber
+
+      - name: Job summary
+        run: |
+          {
+            echo "## Release assets"
+            echo
+            echo "- Tag: ${TAG_VERSION}"
+            echo "- DMG: $(basename "${DMG_PATH}")"
+            echo "- SHA256: $(basename "${CHECKSUM_PATH}")"
+          } >> "${GITHUB_STEP_SUMMARY}"

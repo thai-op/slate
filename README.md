@@ -50,7 +50,7 @@ Create a local release DMG:
 make release
 ```
 
-`make release` runs `make test` first, then calls the existing Ruby release script to rebuild and package the app.
+`make release` packages the app and creates the DMG. Run `make test` first when you want a validated release build.
 
 Output:
 
@@ -61,5 +61,5 @@ build/Release/Slate.dmg
 ## Notes
 
 - `make build` is for quick local iteration.
-- `make release` is the shipping path because it uses the existing packaging script and DMG flow.
+- `make release` is the shipping packaging path because it uses the existing release script and DMG flow.
 - The project currently uses the shared `Slate` Xcode scheme for both build and test.

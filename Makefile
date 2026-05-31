@@ -13,5 +13,5 @@ build:
 test:
 	$(XCODEBUILD) -project $(PROJECT) -scheme $(SCHEME) -configuration Debug -derivedDataPath $(DERIVED_DATA) test
 
-release: test
+release:
 	$(RUBY) $(RELEASE_SCRIPT) gen
