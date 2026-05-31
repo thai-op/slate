@@ -36,6 +36,7 @@
 #import "JSController.h"
 #import "Operation.h"
 #import "JSScreenWrapper.h"
+#import "SlateTestMode.h"
 
 @implementation SlateConfig
 
@@ -149,24 +150,28 @@ static SlateConfig *_instance = nil;
 
   if (!loadedDefault && !loadedJS) {
     SlateLogger(@"  ERROR Could not load ~/.slate or ~/.slate.js");
-    NSAlert *alert = [SlateConfig warningAlertWithKeyEquivalents: [NSArray arrayWithObjects:@"Continue", @"Quit", nil]];
-    [alert setMessageText:@"Could not load ~/.slate or ~/.slate.js"];
-    [alert setInformativeText:@"The default configuration will be used. You can find the default .slate file at https://github.com/jigish/slate/blob/master/Slate/default.slate"];
-    if ([alert runModal] == NSAlertSecondButtonReturn) {
-      SlateLogger(@"User selected exit");
-      [NSApp terminate:nil];
+    if (!SlateIsRunningUnderXCTest()) {
+      NSAlert *alert = [SlateConfig warningAlertWithKeyEquivalents: [NSArray arrayWithObjects:@"Continue", @"Quit", nil]];
+      [alert setMessageText:@"Could not load ~/.slate or ~/.slate.js"];
+      [alert setInformativeText:@"The default configuration will be used. You can find the default .slate file at https://github.com/jigish/slate/blob/master/Slate/default.slate"];
+      if ([alert runModal] == NSAlertSecondButtonReturn) {
+        SlateLogger(@"User selected exit");
+        [NSApp terminate:nil];
+      }
     }
     return [self loadConfigFileWithPath:[[NSBundle mainBundle] pathForResource:@"default" ofType:@"slate"]];
   }
 
   if (![self loadSnapshots]) {
     SlateLogger(@"  ERROR Could not load %@", SNAPSHOTS_FILE);
-    NSAlert *alert = [SlateConfig warningAlertWithKeyEquivalents: [NSArray arrayWithObjects:@"Quit", @"Skip", nil]];
-    [alert setMessageText:[NSString stringWithFormat:@"ERROR Could not load %@", SNAPSHOTS_FILE]];
-    [alert setInformativeText:[NSString stringWithFormat:@"I dunno. Figure it out. Maybe try deleting %@", SNAPSHOTS_FILE]];
-    if ([alert runModal] == NSAlertFirstButtonReturn) {
-      SlateLogger(@"User selected exit");
-      [NSApp terminate:nil];
+    if (!SlateIsRunningUnderXCTest()) {
+      NSAlert *alert = [SlateConfig warningAlertWithKeyEquivalents: [NSArray arrayWithObjects:@"Quit", @"Skip", nil]];
+      [alert setMessageText:[NSString stringWithFormat:@"ERROR Could not load %@", SNAPSHOTS_FILE]];
+      [alert setInformativeText:[NSString stringWithFormat:@"I dunno. Figure it out. Maybe try deleting %@", SNAPSHOTS_FILE]];
+      if ([alert runModal] == NSAlertFirstButtonReturn) {
+        SlateLogger(@"User selected exit");
+        [NSApp terminate:nil];
+      }
     }
     return NO;
   }

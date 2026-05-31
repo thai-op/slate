@@ -1,4 +1,8 @@
-Current Version: 1.0.25
+Current Version: 1.0.28
+
+----------------- 1.0.28 ----------------
+
+Skip interactive app startup during XCTest-hosted runs.
 
 ----------------- 1.0.25 ----------------
 

@@ -32,6 +32,7 @@
 #import "SwitchOperation.h"
 #import "RunningApplications.h"
 #import "GridOperation.h"
+#import "SlateTestMode.h"
 #import <Sparkle/SUUpdater.h>
 
 @implementation SlateAppDelegate
@@ -434,6 +435,10 @@ OSStatus OnModifiersChangedEvent(EventHandlerCallRef nextHandler, EventRef theEv
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+  if (SlateIsRunningUnderXCTest()) {
+    return;
+  }
+
   if (cmdTabBinding > 0 || cmdShiftTabBinding > 0) {
     CFMachPortRef keyDownEventTap;
     CFRunLoopSourceRef keyDownRunLoopSource;
@@ -506,6 +511,10 @@ OSStatus OnModifiersChangedEvent(EventHandlerCallRef nextHandler, EventRef theEv
 
   @synchronized(keyUpLock) {
     keyUpLock = [[NSObject alloc] init];
+  }
+
+  if (SlateIsRunningUnderXCTest()) {
+    return;
   }
 
   // Check if Accessibility API is enabled
