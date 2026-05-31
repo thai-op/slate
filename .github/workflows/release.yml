@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - release-test
-  release:
-    types:
-      - published
 
 permissions:
   contents: write
@@ -27,26 +24,18 @@ jobs:
           xcodebuild -version
           ruby --version
           make --version
-          hdiutil version
+          command -v hdiutil
           command -v osascript
           command -v SetFile
           if ! command -v gh >/dev/null 2>&1; then
             brew install gh
           fi
 
-      - name: Validate release tag
-        if: github.event_name == 'release'
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
+      - name: Determine release version
         run: |
           set -euo pipefail
-          TAG_VERSION="${RELEASE_TAG#v}"
           APP_VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' Slate/Slate-Info.plist)"
-          if [ "${TAG_VERSION}" != "${APP_VERSION}" ]; then
-            echo "Release tag ${RELEASE_TAG} does not match CFBundleVersion ${APP_VERSION}" >&2
-            exit 1
-          fi
-          echo "TAG_VERSION=${TAG_VERSION}" >> "${GITHUB_ENV}"
+          echo "TAG_VERSION=${APP_VERSION}" >> "${GITHUB_ENV}"
 
       - name: Run tests
         run: make test
@@ -54,8 +43,20 @@ jobs:
       - name: Build release DMG
         run: make release
 
+      - name: Ensure GitHub release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh release view "${TAG_VERSION}" -R "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release create "${TAG_VERSION}" \
+              -R "${GITHUB_REPOSITORY}" \
+              --target "${GITHUB_SHA}" \
+              --title "${TAG_VERSION}" \
+              --notes "Temporary automated release from release-test branch."
+          fi
+
       - name: Prepare release assets
-        if: github.event_name == 'release'
         run: |
           set -euo pipefail
           DMG_PATH="build/Release/Slate.dmg"
@@ -67,26 +68,19 @@ jobs:
           echo "CHECKSUM_PATH=${CHECKSUM_PATH}" >> "${GITHUB_ENV}"
 
       - name: Upload release assets
-        if: github.event_name == 'release'
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           set -euo pipefail
-          gh release upload "${RELEASE_TAG}" "${DMG_PATH}" "${CHECKSUM_PATH}" --clobber
+          gh release upload "${TAG_VERSION}" "${DMG_PATH}" "${CHECKSUM_PATH}" --clobber
 
       - name: Job summary
         run: |
           {
             echo "## Release build"
             echo
-            echo "- Event: ${{ github.event_name }}"
-            if [ "${{ github.event_name }}" = "release" ]; then
-              echo "- Tag: ${TAG_VERSION}"
-              echo "- DMG: $(basename "${DMG_PATH}")"
-              echo "- SHA256: $(basename "${CHECKSUM_PATH}")"
-            else
-              echo "- Branch: ${{ github.ref_name }}"
-              echo "- DMG build completed"
-            fi
+            echo "- Branch: ${{ github.ref_name }}"
+            echo "- Tag: ${TAG_VERSION}"
+            echo "- DMG: $(basename "${DMG_PATH}")"
+            echo "- SHA256: $(basename "${CHECKSUM_PATH}")"
           } >> "${GITHUB_STEP_SUMMARY}"
