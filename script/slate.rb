@@ -122,8 +122,8 @@ def gen
   # Build
   log "Building ..."
   Dir.chdir(BASE_DIR)
-  `rm -rf #{DEBUG_OUTPUT_DIR} && mkdir -p #{DEBUG_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" -configuration Debug DSTROOT="#{DEBUG_OUTPUT_DIR}" clean install`
-  `rm -rf #{RELEASE_OUTPUT_DIR} && mkdir -p #{RELEASE_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" DSTROOT="#{RELEASE_OUTPUT_DIR}" clean install`
+  `rm -rf #{DEBUG_OUTPUT_DIR} && mkdir -p #{DEBUG_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" -configuration Debug DSTROOT="#{DEBUG_OUTPUT_DIR}" install`
+  `rm -rf #{RELEASE_OUTPUT_DIR} && mkdir -p #{RELEASE_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" DSTROOT="#{RELEASE_OUTPUT_DIR}" install`
 
   # Copy
   { DEBUG_DIR => File.join(DEBUG_OUTPUT_DIR, "Applications", APP_FILE), RELEASE_DIR => File.join(RELEASE_OUTPUT_DIR, "Applications", APP_FILE) }.each do |to, from|
