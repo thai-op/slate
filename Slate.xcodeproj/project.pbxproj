@@ -658,7 +658,6 @@
 				47C4A2AB1384E8890066B6DE /* Sources */,
 				47C4A2AC1384E8890066B6DE /* Frameworks */,
 				47C4A2AD1384E8890066B6DE /* Resources */,
-				47C4A2AE1384E8890066B6DE /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -668,7 +667,7 @@
 			name = SlateTests;
 			productName = SlateTests;
 			productReference = 47C4A2B01384E8890066B6DE /* SlateTests.xctest */;
-			productType = "com.apple.product-type.bundle";
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -729,22 +728,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
-
-/* Begin PBXShellScriptBuildPhase section */
-		47C4A2AE1384E8890066B6DE /* ShellScript */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
-		};
-/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		47C4A28B1384E8890066B6DE /* Sources */ = {
@@ -978,7 +961,7 @@
 				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tobiasfertig.Slate;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.thai-op.slate";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -1008,7 +991,7 @@
 				INSTALL_PATH = "$(LOCAL_APPS_DIR)";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tobiasfertig.Slate;
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.thai-op.slate";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -1029,11 +1012,7 @@
 				GCC_PREFIX_HEADER = "SlateTests/SlateTests-Prefix.pch";
 				INFOPLIST_FILE = "SlateTests/SlateTests-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-framework",
-					SenTestingKit,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.slate.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.thai-op.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;
@@ -1055,11 +1034,7 @@
 				GCC_PREFIX_HEADER = "SlateTests/SlateTests-Prefix.pch";
 				INFOPLIST_FILE = "SlateTests/SlateTests-Info.plist";
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
-				OTHER_LDFLAGS = (
-					"-framework",
-					SenTestingKit,
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = "com.slate.${PRODUCT_NAME:rfc1034identifier}";
+				PRODUCT_BUNDLE_IDENTIFIER = "io.github.thai-op.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUNDLE_LOADER)";
 				WRAPPER_EXTENSION = xctest;

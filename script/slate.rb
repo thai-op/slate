@@ -29,7 +29,6 @@ APPCAST_SIZE_THRESHOLD = 800
 RELEASE_NOTES_FILENAME = 'VERSION'
 RELEASE_NOTES_SIZE_THRESHOLD = 5000
 SPARKLE_FRAMEWORK = 'Sparkle.framework'
-RELAUNCH = 'relaunch'
 CREATE_DMG = File.join(SCRIPT_DIR, "create-dmg", "create-dmg")
 DMG_STAGING_DIR = File.join(BUILD_DIR, "dmg_staging")
 README_MD_NAME = "README.md"
@@ -83,6 +82,14 @@ def upload_file(from_dir, to_dir, filename, size_threshold, binary = false)
   size
 end
 
+def fix_app_permissions(app_dir)
+  File.new(File.join(app_dir, "Contents", "MacOS", APP_NAME)).chmod(0755)
+  File.new(File.join(app_dir, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Sparkle")).chmod(0755)
+
+  autoupdate = File.join(app_dir, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Autoupdate")
+  File.new(autoupdate).chmod(0755) if File.exist?(autoupdate)
+end
+
 def dmgify
   curr_dir = Dir.pwd
 
@@ -93,9 +100,7 @@ def dmgify
   FileUtils.rm_rf(DMG_STAGING_DIR) if File.directory?(DMG_STAGING_DIR)
   Dir.mkdir(DMG_STAGING_DIR)
   FileUtils.cp_r File.join(RELEASE_DIR, APP_FILE), File.join(DMG_STAGING_DIR, APP_FILE)
-  File.new(File.join(DMG_STAGING_DIR, APP_FILE, "Contents", "MacOS", APP_NAME)).chmod(0755)
-  File.new(File.join(DMG_STAGING_DIR, APP_FILE, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Sparkle")).chmod(0755)
-  File.new(File.join(DMG_STAGING_DIR, APP_FILE, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Resources", RELAUNCH)).chmod(0755)
+  fix_app_permissions(File.join(DMG_STAGING_DIR, APP_FILE))
   File.open(README_TXT, 'w') { |f| f.write("Please visit http://github.com/jigish/slate") }
 
   FileUtils.rm_rf(File.join(RELEASE_DIR, DMG_FILE));
@@ -117,16 +122,14 @@ def gen
   # Build
   log "Building ..."
   Dir.chdir(BASE_DIR)
-  `rm -rf #{DEBUG_OUTPUT_DIR} && mkdir -p #{DEBUG_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate-Debug" DSTROOT="#{DEBUG_OUTPUT_DIR}" clean install`
+  `rm -rf #{DEBUG_OUTPUT_DIR} && mkdir -p #{DEBUG_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" -configuration Debug DSTROOT="#{DEBUG_OUTPUT_DIR}" clean install`
   `rm -rf #{RELEASE_OUTPUT_DIR} && mkdir -p #{RELEASE_OUTPUT_DIR} && CC="" xcodebuild -scheme "Slate" DSTROOT="#{RELEASE_OUTPUT_DIR}" clean install`
 
   # Copy
   { DEBUG_DIR => File.join(DEBUG_OUTPUT_DIR, "Applications", APP_FILE), RELEASE_DIR => File.join(RELEASE_OUTPUT_DIR, "Applications", APP_FILE) }.each do |to, from|
     FileUtils.rm_rf File.join(to, APP_FILE)
     FileUtils.cp_r from, File.join(to, APP_FILE)
-    File.new(File.join(to, APP_FILE, "Contents", "MacOS", APP_NAME)).chmod(0755)
-    File.new(File.join(to, APP_FILE, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Sparkle")).chmod(0755)
-    File.new(File.join(to, APP_FILE, "Contents", "Frameworks", SPARKLE_FRAMEWORK, "Resources", RELAUNCH)).chmod(0755)
+    fix_app_permissions(File.join(to, APP_FILE))
   end
 
   dmgify

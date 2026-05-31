@@ -32,11 +32,11 @@
   XCTAssertFalse([ShellUtils commandExists:@""], @"empty string should not exist");
 }
 
-- (void)testRun {
+- (void)testRunCommand {
   NSTask *task = [ShellUtils run:@"/bin/ls" args:[NSArray arrayWithObject:@"-al"] wait:YES path:nil];
   XCTAssertFalse([task isRunning], @"Task should no longer be running");
   XCTAssertEqual([task terminationStatus], 0, @"Status should be 0");
-  task = [ShellUtils run:@"/usr/bin/find" args:[NSArray arrayWithObjects:@"/", @"-name", @"\"hello\"", nil] wait:NO path:@"/usr"];
+  task = [ShellUtils run:@"/bin/sleep" args:[NSArray arrayWithObject:@"30"] wait:NO path:@"/usr"];
   XCTAssertTrue([task isRunning], @"Task should still be running");
   XCTAssertTrue([[task currentDirectoryPath] isEqualToString:@"/usr"], @"current path should be /usr");
   [task terminate];
@@ -49,8 +49,8 @@
   NSString *result = [ShellUtils run:@"/bin/echo 'with single' \"and double quotes\"" wait:YES path:@"/"];
   NSError *err = nil;
   NSRegularExpression *testRegex = [NSRegularExpression regularExpressionWithPattern:@"with single and double quotes" options:0 error:&err];
-  int found = [testRegex numberOfMatchesInString:result options:0 range:NSMakeRange(0, [result length])];
-  XCTAssertEqual(found, 1, @"Result should include all strings");
+  NSUInteger found = [testRegex numberOfMatchesInString:result options:0 range:NSMakeRange(0, [result length])];
+  XCTAssertEqual(found, (NSUInteger)1, @"Result should include all strings");
 }
 
 @end
